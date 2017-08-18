@@ -10,6 +10,7 @@
 
 import UIKit
 
+
 /**
  A dummy view controller returned when popViewController is canceled
  */
@@ -17,7 +18,6 @@ public final class PopWasIgnored: UIViewController {}
 
 
 open class RoutableNavigationController: UINavigationController {
-    
     fileprivate var isSwipping: Bool = false
     fileprivate var isPerformingPop: Bool = false
     
