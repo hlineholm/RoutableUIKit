@@ -62,7 +62,7 @@ extension RoutableNavigationController: UINavigationBarDelegate {
         
         defer { isPerformingPop = false }
         
-        if !isPerformingPop || self.isSwipping {
+        if isPerformingPop || self.isSwipping {
             self.popRoute()
         }
         
