@@ -1,0 +1,22 @@
+{
+  "name": "RoutableUIKit",
+  "version": "0.1.0",
+  "summary": "A short description of RoutableUIKit.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://github.com/hlineholm-flir/RoutableUIKit",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "hlineholm-flir": "henrik.lineholm@icloud.com"
+  },
+  "source": {
+    "git": "https://github.com/hlineholm-flir/RoutableUIKit.git",
+    "tag": "0.1.0"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "source_files": "RoutableUIKit/Classes/**/*"
+}

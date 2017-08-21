@@ -1,0 +1,6 @@
+framework module RoutableUIKit {
+  umbrella header "RoutableUIKit-umbrella.h"
+
+  export *
+  module * { export * }
+}
