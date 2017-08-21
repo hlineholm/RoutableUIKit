@@ -8,14 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		55183E171F46D62D00A004DD /* RoutableUIKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 55183E151F46D62D00A004DD /* RoutableUIKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		55183E1E1F46D9F200A004DD /* NavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55183E1D1F46D9F200A004DD /* NavigationController.swift */; };
+		55183E1E1F46D9F200A004DD /* RoutableNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55183E1D1F46D9F200A004DD /* RoutableNavigationController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		55183E121F46D62D00A004DD /* RoutableUIKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RoutableUIKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		55183E151F46D62D00A004DD /* RoutableUIKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoutableUIKit.h; sourceTree = "<group>"; };
 		55183E161F46D62D00A004DD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		55183E1D1F46D9F200A004DD /* NavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavigationController.swift; sourceTree = "<group>"; };
+		55183E1D1F46D9F200A004DD /* RoutableNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RoutableNavigationController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -50,7 +50,7 @@
 			children = (
 				55183E151F46D62D00A004DD /* RoutableUIKit.h */,
 				55183E161F46D62D00A004DD /* Info.plist */,
-				55183E1D1F46D9F200A004DD /* NavigationController.swift */,
+				55183E1D1F46D9F200A004DD /* RoutableNavigationController.swift */,
 			);
 			path = RoutableUIKit;
 			sourceTree = "<group>";
@@ -135,7 +135,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				55183E1E1F46D9F200A004DD /* NavigationController.swift in Sources */,
+				55183E1E1F46D9F200A004DD /* RoutableNavigationController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -303,6 +303,7 @@
 				55183E1C1F46D62D00A004DD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

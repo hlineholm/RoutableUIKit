@@ -1,5 +1,5 @@
 //
-//  NavigationController.swift
+//  RoutableNavigationController.swift
 //  RoutableUIKit
 //
 //  Created by Lineholm, Henrik on 2017-08-18.
@@ -16,7 +16,7 @@ import UIKit
 public final class PopWasIgnored: UIViewController {}
 
 
-open class NavigationController: UINavigationController {
+open class RoutableNavigationController: UINavigationController {
     
     fileprivate var isSwipping: Bool = false
     fileprivate var isPerformingPop: Bool = false
@@ -34,7 +34,7 @@ open class NavigationController: UINavigationController {
         super.viewDidLoad()
         self.interactivePopGestureRecognizer?.addTarget(
             self,
-            action: #selector(NavigationController.handlePopSwipe)
+            action: #selector(RoutableNavigationController.handlePopSwipe)
         )
         self.delegate = self
     }
@@ -45,7 +45,7 @@ open class NavigationController: UINavigationController {
     }
 }
 
-extension NavigationController: UINavigationControllerDelegate {
+extension RoutableNavigationController: UINavigationControllerDelegate {
     public func navigationController(
         _ navigationController: UINavigationController,
         didShow viewController: UIViewController,
@@ -55,7 +55,7 @@ extension NavigationController: UINavigationControllerDelegate {
     }
 }
 
-extension NavigationController: UINavigationBarDelegate {
+extension RoutableNavigationController: UINavigationBarDelegate {
     public func navigationBar(
         _ navigationBar: UINavigationBar,
         shouldPop item: UINavigationItem) -> Bool {
