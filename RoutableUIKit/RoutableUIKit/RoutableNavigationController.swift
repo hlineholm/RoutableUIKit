@@ -5,99 +5,88 @@
 //  Created by Lineholm, Henrik on 2017-08-18.
 //  Copyright © 2017 RouteableUIKit. All rights reserved.
 //
-//  Based on https://github.com/ReSwift/ReSwift-Router/pull/74
 
 
 import UIKit
 
 
-/**
- A dummy view controller returned when popViewController is canceled
- */
-public final class PopWasIgnored: UIViewController {}
+open class RoutableNavigationController: UINavigationController, UINavigationControllerDelegate {
 
+    public var routingDelegate: RoutableNavigationControllerDelegate?
+    private var hasPopped = false
 
-open class RoutableNavigationController: UINavigationController {
-    fileprivate var isSwipping: Bool = false
-    fileprivate var isPerformingPop: Bool = false
+    // MARK: UIViewController
     
-    func handlePopSwipe(){
-        self.isSwipping = true
-    }
-    open func popRoute(){
-        print("WARNING: \(#function) has not been implemented, put your custom routing here!")
+    open override func viewDidLoad() {
+        super.viewDidLoad()
+        delegate = self
     }
     
     // MARK: UINavigationController
     
-    override open func viewDidLoad() {
-        super.viewDidLoad()
-        self.interactivePopGestureRecognizer?.addTarget(
-            self,
-            action: #selector(RoutableNavigationController.handlePopSwipe)
-        )
-        self.delegate = self
+    open override var delegate: UINavigationControllerDelegate? {
+        didSet {
+            if !(delegate is RoutableNavigationController) {
+                defaultDelegate = delegate
+                delegate = oldValue
+            }
+        }
     }
-    override open func popViewController(animated: Bool) -> UIViewController? {
-        guard !self.isSwipping else { return PopWasIgnored() }
-        self.isPerformingPop = true
+    private var defaultDelegate: UINavigationControllerDelegate?
+    
+    open override func pushViewController(_ viewController: UIViewController, animated: Bool) {
+        hasPopped = false
+        super.pushViewController(viewController, animated: animated)
+    }
+    open override func popViewController(animated: Bool) -> UIViewController? {
+        hasPopped = true
         return super.popViewController(animated: animated)
     }
-}
-
-extension RoutableNavigationController: UINavigationControllerDelegate {
-    public func navigationController(
-        _ navigationController: UINavigationController,
-        didShow viewController: UIViewController,
-        animated: Bool) {
-        
-        self.isSwipping = false
+    open override func popToRootViewController(animated: Bool) -> [UIViewController]? {
+        hasPopped = true
+        return super.popToRootViewController(animated: animated)
     }
-}
-
-extension RoutableNavigationController: UINavigationBarDelegate {
-    public func navigationBar(
-        _ navigationBar: UINavigationBar,
-        shouldPop item: UINavigationItem) -> Bool {
+    open override func popToViewController(_ viewController: UIViewController, animated: Bool) -> [UIViewController]? {
+        hasPopped = true
+        return super.popToViewController(viewController, animated: animated)
+    }
+    
+    // MARK: UINavigationControllerDelegate
+    
+    open func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
+        guard let nvc = navigationController as? RoutableNavigationController else { fatalError() }
         
-        defer { isPerformingPop = false }
-        
-        if isPerformingPop || self.isSwipping {
-            self.popRoute()
+        if nvc.hasPopped {
+            routingDelegate?.routableNavigationController(self, didPop: viewController, animated: animated)
         }
         
-        return isPerformingPop
+        defaultDelegate?.navigationController?(navigationController, didShow: viewController, animated: animated)
+    }
+    open func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+        defaultDelegate?.navigationController?(navigationController, willShow: viewController, animated: animated)
+    }
+    open func navigationControllerSupportedInterfaceOrientations(_ navigationController: UINavigationController) -> UIInterfaceOrientationMask {
+        if let function = defaultDelegate?.navigationControllerSupportedInterfaceOrientations {
+            return function(navigationController)
+        } else {
+            return .all
+        }
+    }
+    open func navigationControllerPreferredInterfaceOrientationForPresentation(_ navigationController: UINavigationController) -> UIInterfaceOrientation {
+        if let function = defaultDelegate?.navigationControllerPreferredInterfaceOrientationForPresentation {
+            return function(navigationController)
+        } else {
+            return .portrait
+        }
+    }
+    open func navigationController(_ navigationController: UINavigationController, interactionControllerFor animationController: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+        return defaultDelegate?.navigationController?(navigationController, interactionControllerFor: animationController)
+    }
+    open func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationControllerOperation, from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        return defaultDelegate?.navigationController?(navigationController, animationControllerFor: operation, from: fromVC, to: toVC)
     }
 }
 
-extension UINavigationController {
-    open func pushViewController(
-        _ viewController: UIViewController,
-        animated: Bool,
-        completion: @escaping () -> Void) {
-        
-        self.pushViewController(viewController, animated: animated)
-        
-        guard animated, let coordinator = self.transitionCoordinator else {
-            completion()
-            return
-        }
-        
-        coordinator.animate(alongsideTransition: nil) { _ in completion() }
-    }
-    open func popViewController(
-        animated: Bool,
-        completion: @escaping () -> Void) -> UIViewController? {
-        
-        let popped = self.popViewController(animated: animated)
-        
-        guard animated, let coordinator = self.transitionCoordinator else {
-            completion()
-            return popped
-        }
-        
-        coordinator.animate(alongsideTransition: nil) { _ in completion() }
-        
-        return popped
-    }
+public protocol RoutableNavigationControllerDelegate {
+    func routableNavigationController(_ rnvc: RoutableNavigationController, didPop vc: UIViewController, animated: Bool)
 }
