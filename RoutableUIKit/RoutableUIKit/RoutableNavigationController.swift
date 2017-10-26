@@ -6,16 +6,47 @@
 //  Copyright © 2017 RouteableUIKit. All rights reserved.
 //
 
-
 import UIKit
 
+public typealias RNC = RoutableNavigationController
+public typealias RNCD = RoutableNavigationControllerDelegate
+public typealias UIVC = UIViewController
+public typealias UINC = UINavigationController
+public typealias UINCD = UINavigationControllerDelegate
+public typealias UIIO = UIInterfaceOrientation
+public typealias UIIOM = UIInterfaceOrientationMask
+public typealias UIVCAT = UIViewControllerAnimatedTransitioning
+public typealias UIVCIT = UIViewControllerInteractiveTransitioning
+public typealias UINCO = UINavigationControllerOperation
 
-open class RoutableNavigationController: UINavigationController, UINavigationControllerDelegate {
 
-    public var routingDelegate: RoutableNavigationControllerDelegate?
-    private var hasPopped = false
-
-    // MARK: UIViewController
+open class RoutableNavigationController<Delegate: RNCD>: UINC, UINCD {
+    
+    private enum Action { case idle, pushing, poping }
+    private typealias State = (action: Action, sender: Any?)
+    
+    public var route: Delegate.Route?
+    public var routingDelegate: Delegate?
+    private var state: State = (.idle, nil)
+    
+    public func pushViewController(_ vc: UIVC, animated: Bool, sender: Any) {
+        self.state = (.pushing, sender)
+        super.pushViewController(vc, animated: animated)
+    }
+    public func popViewController(animated: Bool, sender: Any) -> UIVC? {
+        self.state = (.poping, sender)
+        return super.popViewController(animated: animated)
+    }
+    public func popToRootViewController(animated: Bool, sender: Any) -> [UIVC]? {
+        self.state = (.poping, sender)
+        return super.popToRootViewController(animated: animated)
+    }
+    public func popToViewController(_ vc: UIVC, animated: Bool, sender: Any) -> [UIVC]? {
+        self.state = (.poping, sender)
+        return super.popToViewController(vc, animated: animated)
+    }
+    
+    // MARK: UIVC
     
     open override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,69 +55,82 @@ open class RoutableNavigationController: UINavigationController, UINavigationCon
     
     // MARK: UINavigationController
     
-    open override var delegate: UINavigationControllerDelegate? {
+    open override var delegate: UINCD? {
         didSet {
-            if !(delegate is RoutableNavigationController) {
+            if !(delegate is RNC<Delegate>) {
                 defaultDelegate = delegate
                 delegate = oldValue
             }
         }
     }
-    private var defaultDelegate: UINavigationControllerDelegate?
+    private var defaultDelegate: UINCD?
     
-    open override func pushViewController(_ viewController: UIViewController, animated: Bool) {
-        hasPopped = false
-        super.pushViewController(viewController, animated: animated)
+    open override func pushViewController(_ vc: UIVC, animated: Bool) {
+        state = (.pushing, nil)
+        super.pushViewController(vc, animated: animated)
     }
-    open override func popViewController(animated: Bool) -> UIViewController? {
-        hasPopped = true
+    open override func popViewController(animated: Bool) -> UIVC? {
+        state = (.poping, nil)
         return super.popViewController(animated: animated)
     }
-    open override func popToRootViewController(animated: Bool) -> [UIViewController]? {
-        hasPopped = true
+    open override func popToRootViewController(animated: Bool) -> [UIVC]? {
+        state = (.poping, nil)
         return super.popToRootViewController(animated: animated)
     }
-    open override func popToViewController(_ viewController: UIViewController, animated: Bool) -> [UIViewController]? {
-        hasPopped = true
-        return super.popToViewController(viewController, animated: animated)
+    open override func popToViewController(_ vc: UIVC, animated: Bool) -> [UIVC]? {
+        state = (.poping, nil)
+        return super.popToViewController(vc, animated: animated)
     }
     
     // MARK: UINavigationControllerDelegate
     
-    open func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
-        guard let nvc = navigationController as? RoutableNavigationController else { fatalError() }
+    open func navigationController(_ nc: UINC, didShow vc: UIVC, animated: Bool) {
+        defaultDelegate?.navigationController?(nc, didShow: vc, animated: animated)
         
-        if nvc.hasPopped {
-            routingDelegate?.routableNavigationController(self, didPop: viewController, animated: animated)
+        if state.action == .pushing {
+            routingDelegate?.routableNavigationController(self, didPush: vc, animated: animated, sender: state.sender)
+        } else if state.action == .poping {
+            routingDelegate?.routableNavigationController(self, didPop: vc, animated: animated, sender: state.sender)
         }
         
-        defaultDelegate?.navigationController?(navigationController, didShow: viewController, animated: animated)
+        state = (.idle, nil)
     }
-    open func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
-        defaultDelegate?.navigationController?(navigationController, willShow: viewController, animated: animated)
+    open func navigationController(_ nc: UINC, willShow vc: UIVC, animated: Bool) {
+        defaultDelegate?.navigationController?(nc, willShow: vc, animated: animated)
+        if let tc = topViewController?.transitionCoordinator {
+            tc.notifyWhenInteractionChanges({ [unowned self] (context) in
+                if context.isCancelled {
+                    self.state = (.idle, nil)
+                }
+            })
+        }
     }
-    open func navigationControllerSupportedInterfaceOrientations(_ navigationController: UINavigationController) -> UIInterfaceOrientationMask {
+    open func navigationControllerSupportedInterfaceOrientations(_ nc: UINC) -> UIIOM {
         if let function = defaultDelegate?.navigationControllerSupportedInterfaceOrientations {
-            return function(navigationController)
+            return function(nc)
         } else {
             return .all
         }
     }
-    open func navigationControllerPreferredInterfaceOrientationForPresentation(_ navigationController: UINavigationController) -> UIInterfaceOrientation {
+    open func navigationControllerPreferredInterfaceOrientationForPresentation(_ nc: UINC) -> UIIO {
         if let function = defaultDelegate?.navigationControllerPreferredInterfaceOrientationForPresentation {
-            return function(navigationController)
+            return function(nc)
         } else {
             return .portrait
         }
     }
-    open func navigationController(_ navigationController: UINavigationController, interactionControllerFor animationController: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
-        return defaultDelegate?.navigationController?(navigationController, interactionControllerFor: animationController)
+    open func navigationController(_ nc: UINC, interactionControllerFor ac: UIVCAT) -> UIVCIT? {
+        return defaultDelegate?.navigationController?(nc, interactionControllerFor: ac)
     }
-    open func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationControllerOperation, from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        return defaultDelegate?.navigationController?(navigationController, animationControllerFor: operation, from: fromVC, to: toVC)
+    open func navigationController(_ nc: UINC, animationControllerFor operation: UINCO, from fromVC: UIVC, to toVC: UIVC) -> UIVCAT? {
+        return defaultDelegate?.navigationController?(nc, animationControllerFor: operation, from: fromVC, to: toVC)
     }
+    
 }
 
+
 public protocol RoutableNavigationControllerDelegate {
-    func routableNavigationController(_ rnvc: RoutableNavigationController, didPop vc: UIViewController, animated: Bool)
+    associatedtype Route
+    func routableNavigationController(_ rnc: RNC<Self>, didPush vc: UIVC, animated: Bool, sender: Any?)
+    func routableNavigationController(_ rnc: RNC<Self>, didPop vc: UIVC, animated: Bool, sender: Any?)
 }
