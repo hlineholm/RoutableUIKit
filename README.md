@@ -1,5 +1,5 @@
 # RoutableUIKit
-Routable UIKit components which are agnostic of you custom routing logic
+Routable UIKit components which are agnostic of your custom routing logic
 ## Getting Started
 ### RoutableNavigationController (RNC) and RoutableNavigationControllerDelegate (RNCD)
 1. Create an instance of the navigation controller
